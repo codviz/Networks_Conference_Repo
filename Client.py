@@ -9,7 +9,7 @@ Hello = bytes('Hello', encoding = 'ascii')
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     s.connect((HOST, PORT))
-    data_string = input("Guess A Number Between 1 and 100 (enter -1 to quit at anytime): ")
+    data_string = input("Guess A Number Between 0 and 10 (enter -1 to quit at anytime): ")
     data = bytes(data_string, encoding = 'ascii')
     s.sendall(data)
     data = s.recv(1024)
