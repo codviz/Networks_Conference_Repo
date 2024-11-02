@@ -1,21 +1,41 @@
 import socket, threading
 import random
 
-random_number = random.randint(0,4)
+clients = []
 
 def handle_user_connection(connection: socket.socket, address: str):
 
+    random_number = random.randint(0,4)
+    print(f"Connected From {address}")
+    print(f"Random Number For {address} is {random_number}")
+    print(f"Server Currently Has {len(clients)} Connections")
+    print("..")
+
     while True:
+
         try:
             msg = connection.recv(1024)
             if (msg.decode() == str(random_number)):
-                connection.send("you got it!".encode())
-                connection.send("regenerating number!".encode())
+                connection.send(f"You Got It! \nRegenarating Number! \n..".encode())
+                random_number = random.randint(0,4)
+                print(f"Random Number For {address} is {random_number}")
+
+            elif (msg.decode()) == "Quit":
+                clients.remove(address)
+                print(f"{address} Has Disconnected")
+                print(f"Server Currently Has {len(clients)} Connections")
+                connection.send(f"Goodbye!".encode())
+                connection.close()
+                break
+
             else:
-                connection.send("not quite... ".encode())
-                connection.send("Guess A Number Between 0 and 4, Type 'quit' to exit: ".encode())
+                connection.send(f"Not Quite... \nGuess A Number Between 0 and 4, Type 'Quit' To Disconnect From Server: \n..".encode())
+
         except Exception as e:
             print(f'Error to handle user connection: {e}')
+            clients.remove(address)
+            print(f"{address} Has Disconnected")
+            print(f"Server Currently Has {len(clients)} Connections")
             break
 
 def server():
@@ -28,14 +48,18 @@ def server():
         socket_instance.listen()
 
         print('Server running!')
+
         
         while True:
 
             socket_connection, address = socket_instance.accept()
+            clients.append(address)
             threading.Thread(target=handle_user_connection, args=[socket_connection, address]).start()
-
+                
+            
     except Exception as e:
         print(f'An error has occurred when instancing socket: {e}')
+        socket_connection.close()
 
 
 if __name__ == "__main__":
