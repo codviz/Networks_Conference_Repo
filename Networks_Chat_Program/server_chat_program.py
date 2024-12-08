@@ -1,4 +1,6 @@
 import socket, threading
+import random
+from datetime import datetime
 
 class Server:
 
@@ -9,11 +11,11 @@ class Server:
         self.clients = {}
         self.client_inboxes = {}
         self.client_usernames = []
-        self.commands = ["Client-Dir; - Gives List Of Client Usernames Connected To Server",
-                         "Cmd-Dir; - Gives List Of Usable Commands",
-                         "Send-Message;<USERNAME> Message - Send A Message To A User Connected To The Server",
-                         "View-Messages; - View All Current Messages In Your Inbox",
-                         "Clear-Messages; - Clear All Current Messages In Your Inbox",]
+        self.commands = ["CDR; - Gives List Of Client Usernames Connected To Server",
+                         "CMD; - Gives List Of Usable Commands",
+                         "SM;<USERNAME> Message - Send A Message To A User Connected To The Server",
+                         "VMS; - View All Current Messages In Your Inbox",
+                         "CMS; - Clear All Current Messages In Your Inbox",]
         
         
         try:
@@ -78,26 +80,27 @@ class Server:
                 msg = connection.recv(1024)
                 print("Recieved ", msg, "From ", client_username)
 
-                if (msg.decode() == "Client-Dir;"):
+                if (msg.decode() == "CDR;"):
                     connection.send(str(self.client_usernames).encode())
-                elif (msg.decode() == "Cmd-Dir;"):
+                elif (msg.decode() == "CMD;"):
                     ##TAG addition helps client know how to format certain specific kinds of data it recieves
                     connection.send("TAG == CMDR".encode() + str(self.commands).encode())
-                elif (msg.decode()[:13] == "Send-Message;"):
+                elif (msg.decode()[:3] == "SM;"):
                     if (">" not in msg.decode() or "<" not in msg.decode()):
                         connection.send("ERROR: Invalid Command".encode())
-                    elif msg.decode()[14:(msg.decode().find(">"))] not in self.client_usernames:
+                    elif msg.decode()[4:(msg.decode().find(">"))] not in self.client_usernames:
                         connection.send("ERROR: Invalid Username".encode())
-                    elif msg.decode()[14:(msg.decode().find(">"))] == client_username:
+                    elif msg.decode()[4:(msg.decode().find(">"))] == client_username:
                         connection.send("ERROR: Cannot Send Message To Yourself".encode())
                     else:
-                        sending_username = msg.decode()[14:(msg.decode().find(">"))]
-                        self.client_inboxes[sending_username].append(client_username.upper() + ": " + 
+                        sending_username = msg.decode()[4:(msg.decode().find(">"))]
+                        self.client_inboxes[sending_username].append(client_username.upper() + ": at " + 
+                                                                     datetime.now().strftime('%H:%M:%S') + " - " +
                                                                      msg.decode()[msg.decode().find(">") + 1:])
                         connection.send("Message Sent!".encode())
-                elif (msg.decode() == "View-Messages;"):
+                elif (msg.decode() == "VMS;"):
                     connection.send("TAG == MLBX".encode() + str(self.client_inboxes[client_username]).encode())
-                elif (msg.decode() == "Clear-Messages;"):
+                elif (msg.decode() == "CMS;"):
                     self.client_inboxes[client_username].clear()
                     connection.send("Messages Cleared!".encode())
                 else:
