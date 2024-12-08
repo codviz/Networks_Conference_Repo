@@ -28,7 +28,7 @@ def client():
             print("Enter Your Username: ")
             client_username_input = input()
             socket_instance.send(client_username_input.encode())
-            username_response = socket_instance.recv(1024)
+            username_response = socket_instance.recv(1024)    
 
             if username_response.decode() == "INVALID_USERNAME":
                 print("ERROR: Username Already In Use")
@@ -50,7 +50,7 @@ def client():
                 commands_list = response_msg.decode()[11:].split(",")
                 for command in commands_list:
                     print(command)
-            if (response_msg.decode()[:11] == "TAG == MLBX"):
+            elif (response_msg.decode()[:11] == "TAG == MLBX"):
                 inbox_list = response_msg.decode()[11:].split(",")
                 for inbox_entry in inbox_list:
                     print(inbox_entry)
