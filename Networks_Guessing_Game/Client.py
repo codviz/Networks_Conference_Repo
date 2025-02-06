@@ -1,5 +1,5 @@
 import socket
-
+# hi friend just making a comement
 
 def client():
     
